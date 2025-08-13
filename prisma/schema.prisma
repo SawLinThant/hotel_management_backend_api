@@ -1,0 +1,218 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Enums aligned with frontend constants
+enum Role {
+  admin
+  staff
+  guest
+}
+
+enum RoomType {
+  single
+  double
+  suite
+  deluxe
+}
+
+enum RoomStatus {
+  available
+  occupied
+  maintenance
+  cleaning
+}
+
+enum BookingStatus {
+  pending
+  confirmed
+  checked_in
+  checked_out
+  cancelled
+}
+
+enum PaymentMethod {
+  cash
+  card
+  online
+  bank_transfer
+}
+
+enum PaymentStatus {
+  pending
+  completed
+  failed
+  refunded
+}
+
+// Core models
+model User {
+  id                 String                 @id @default(cuid())
+  email              String                 @unique @db.VarChar(255)
+  password_hash      String                 @db.VarChar(255)
+  first_name         String                 @db.VarChar(100)
+  last_name          String                 @db.VarChar(100)
+  phone              String?                @db.VarChar(30)
+  role               Role                   @default(guest)
+  is_active          Boolean                @default(true)
+  email_verified     Boolean?
+  address            String?                @db.VarChar(255)
+  city               String?                @db.VarChar(100)
+  country            String?                @db.VarChar(100)
+  date_of_birth      DateTime?
+  nationality        String?                @db.VarChar(100)
+  passport_number    String?                @db.VarChar(100)
+  id_card_number     String?                @db.VarChar(100)
+  avatar_url         String?                @db.VarChar(500)
+  preferences        Json?
+  created_at         DateTime               @default(now())
+  updated_at         DateTime               @updatedAt
+  last_login         DateTime?
+
+  // Relations
+  bookings           Booking[]
+  payments           Payment[]
+  refresh_tokens     RefreshToken[]
+  verification_tokens EmailVerificationToken[]
+  password_reset_tokens PasswordResetToken[]
+
+  @@index([email_verified, is_active])
+  @@index([role])
+}
+
+model Room {
+  id               String         @id @default(cuid())
+  room_number      String         @unique @db.VarChar(50)
+  type             RoomType
+  status           RoomStatus     @default(available)
+  capacity         Int
+  price_per_night  Decimal        @db.Decimal(10, 2)
+  description      String?        @db.Text
+  amenities        Json
+  images           Json?
+  floor            Int?
+  size_sqm         Decimal?       @db.Decimal(6, 2)
+  created_at       DateTime       @default(now())
+  updated_at       DateTime       @updatedAt
+
+  // Relations
+  bookings         Booking[]
+
+  @@index([type, status])
+  @@index([price_per_night])
+  @@index([capacity])
+}
+
+model Booking {
+  id                String         @id @default(cuid())
+  room_id           String
+  guest_id          String
+  check_in_date     DateTime
+  check_out_date    DateTime
+  guests            Int
+  status            BookingStatus  @default(pending)
+  total_amount      Decimal        @db.Decimal(10, 2)
+  paid_amount       Decimal        @db.Decimal(10, 2) @default(0)
+  special_requests  String?        @db.Text
+  confirmation_code String         @unique @db.VarChar(30)
+  created_at        DateTime       @default(now())
+  updated_at        DateTime       @updatedAt
+
+  // Relations
+  room              Room           @relation(fields: [room_id], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  guest             User           @relation(fields: [guest_id], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  payments          Payment[]
+  stay_record       StayRecord?
+
+  @@index([guest_id])
+  @@index([room_id])
+  @@index([check_in_date])
+  @@index([check_out_date])
+  @@index([status])
+  @@unique([room_id, check_in_date, check_out_date], name: "booking_room_date_unique")
+}
+
+model Payment {
+  id                String         @id @default(cuid())
+  booking_id        String
+  user_id           String?
+  amount            Decimal        @db.Decimal(10, 2)
+  payment_method    PaymentMethod
+  status            PaymentStatus  @default(completed)
+  transaction_id    String         @unique @db.VarChar(100)
+  payment_reference String?        @db.VarChar(100)
+  paid_at           DateTime       @default(now())
+  metadata          Json?
+  created_at        DateTime       @default(now())
+
+  // Relations
+  booking           Booking        @relation(fields: [booking_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  user              User?          @relation(fields: [user_id], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
+  @@index([booking_id])
+}
+
+model StayRecord {
+  id                      String    @id @default(cuid())
+  booking_id              String    @unique
+  actual_check_in_time    DateTime?
+  actual_check_out_time   DateTime?
+  notes                   String?   @db.Text
+  additional_charges      Json?
+  created_at              DateTime  @default(now())
+  updated_at              DateTime  @updatedAt
+
+  // Relations
+  booking                 Booking   @relation(fields: [booking_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+}
+
+// Security/auth related models
+model RefreshToken {
+  id           String    @id @default(cuid())
+  token        String    @unique @db.VarChar(255)
+  user_id      String
+  revoked_at   DateTime?
+  expires_at   DateTime
+  user_agent   String?   @db.VarChar(255)
+  ip_address   String?   @db.VarChar(100)
+  created_at   DateTime  @default(now())
+
+  user         User      @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([user_id])
+  @@index([expires_at])
+}
+
+model EmailVerificationToken {
+  id           String    @id @default(cuid())
+  token        String    @unique @db.VarChar(255)
+  user_id      String
+  expires_at   DateTime
+  consumed_at  DateTime?
+  created_at   DateTime  @default(now())
+
+  user         User      @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([user_id])
+  @@index([expires_at])
+}
+
+model PasswordResetToken {
+  id           String    @id @default(cuid())
+  token        String    @unique @db.VarChar(255)
+  user_id      String
+  expires_at   DateTime
+  consumed_at  DateTime?
+  created_at   DateTime  @default(now())
+
+  user         User      @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([user_id])
+  @@index([expires_at])
+}
