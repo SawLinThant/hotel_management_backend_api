@@ -103,7 +103,7 @@ export async function registerController(req, res) {
     }
 }
 const genericLoginSchema = z.object({
-    role: z.enum(['guest', 'staff']).optional().default('guest'),
+    role: z.enum(['guest', 'staff', 'admin']).optional().default('guest'),
     email: z.string().email(),
     password: z.string().min(8),
 });
