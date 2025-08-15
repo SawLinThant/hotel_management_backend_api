@@ -12,7 +12,7 @@ export const config = {
 		refreshTokenExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
 	},
 	cors: {
-		origin: (process.env.CORS_ORIGIN || 'http://localhost:3000').split(','),
+		origin: (process.env.CORS_ORIGIN || 'http://localhost:3000,http://localhost:3001').split(','),
 	},
 	rateLimit: {
 		windowMs: Number(process.env.RATE_LIMIT_WINDOW_MS || 60_000),

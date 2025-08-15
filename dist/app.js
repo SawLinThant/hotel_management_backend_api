@@ -6,16 +6,25 @@ import compression from 'compression';
 import authRoutes from './routes/authRoutes.js';
 import passwordResetRoutes from './routes/passwordResetRoutes.js';
 import roomRoutes from './routes/roomRoutes.js';
+import bookingRoutes from './routes/bookingRoutes.js';
+import stayRecordRoutes from './routes/stayRecordRoutes.js';
 import config from './config/index.js';
 const app = express();
 const prisma = new PrismaClient();
 app.use(helmet());
-app.use(cors({ origin: config.cors.origin, credentials: true }));
+app.use(cors({
+    origin: config.cors.origin,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+}));
 app.use(compression());
 app.use(express.json());
 app.use('/api', authRoutes);
 app.use('/api', passwordResetRoutes);
 app.use('/api', roomRoutes);
+app.use('/api', bookingRoutes);
+app.use('/api', stayRecordRoutes);
 app.get('/api/test', (req, res) => {
     res.status(200).json({ message: 'API is working!' });
 });
