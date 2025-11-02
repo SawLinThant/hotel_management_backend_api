@@ -17,6 +17,11 @@ export declare const config: {
     readonly security: {
         readonly staffRegistrationKey: string;
     };
+    readonly cloudinary: {
+        readonly cloudName: string;
+        readonly apiKey: string;
+        readonly apiSecret: string;
+    };
 };
 export default config;
 //# sourceMappingURL=index.d.ts.map

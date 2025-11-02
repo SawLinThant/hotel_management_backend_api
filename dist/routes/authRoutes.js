@@ -1,12 +1,13 @@
 import { Router } from 'express';
 import { authLimiter } from '../middleware/rateLimit.js';
 import { authenticate } from '../middleware/authMiddleware.js';
-import { loginGuestController, loginStaffController, registerGuestController, registerStaffController, loginController, registerController, refreshTokenController, logoutController, logoutAllSessionsController, } from '../controllers/authController.js';
+import { loginGuestController, loginStaffController, loginAdminController, registerGuestController, registerStaffController, loginController, registerController, refreshTokenController, logoutController, logoutAllSessionsController, } from '../controllers/authController.js';
 const router = Router();
 router.post('/auth/guest/register', authLimiter, registerGuestController);
 router.post('/auth/guest/login', authLimiter, loginGuestController);
 router.post('/auth/staff/register', authLimiter, registerStaffController);
 router.post('/auth/staff/login', authLimiter, loginStaffController);
+router.post('/auth/admin/login', authLimiter, loginAdminController);
 // Optional generic endpoints
 router.post('/auth/register', authLimiter, registerController);
 router.post('/auth/login', authLimiter, loginController);

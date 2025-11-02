@@ -1,5 +1,7 @@
-import type { Response } from 'express';
+import type { Request, Response } from 'express';
 import { z } from 'zod';
+import { BadRequest, NotFound } from '../utils/errors.js';
+import { paginationSchema, bookingCreateSchema, bookingUpdateSchema, checkInSchema, checkOutSchema } from './validators.js';
 import {
 	createBooking,
 	getBookingById,
@@ -8,6 +10,11 @@ import {
 	cancelBooking,
 	deleteBooking,
 	getBookingStats,
+	checkIn,
+	checkOut,
+	stats,
+	arrivals,
+	departures,
 	type BookingFilters,
 	type PaginationOptions,
 	type CreateBookingData,
@@ -16,8 +23,8 @@ import {
 import type { AuthenticatedRequest } from '../middleware/authMiddleware.js';
 import type { BookingStatus } from '../../generated/prisma/index.js';
 
-// Validation schemas
-const createBookingSchema = z.object({
+// Validation schemas for AuthenticatedRequest controllers
+const createBookingAuthSchema = z.object({
 	room_id: z.string().min(1, 'Room ID is required'),
 	guest_id: z.string().min(1, 'Guest ID is required'),
 	check_in_date: z.string().datetime('Invalid check-in date format'),
@@ -26,7 +33,7 @@ const createBookingSchema = z.object({
 	special_requests: z.string().optional(),
 });
 
-const updateBookingSchema = z.object({
+const updateBookingAuthSchema = z.object({
 	check_in_date: z.string().datetime('Invalid check-in date format').optional(),
 	check_out_date: z.string().datetime('Invalid check-out date format').optional(),
 	guests: z.number().int().min(1, 'At least 1 guest required').max(10, 'Maximum 10 guests allowed').optional(),
@@ -45,21 +52,21 @@ const bookingFiltersSchema = z.object({
 	guests: z.coerce.number().int().min(1).max(10).optional(),
 });
 
-const paginationSchema = z.object({
+const paginationAuthSchema = z.object({
 	page: z.coerce.number().int().min(1, 'Page must be at least 1').optional(),
 	limit: z.coerce.number().int().min(1, 'Limit must be at least 1').max(100, 'Limit cannot exceed 100').optional(),
 	sortBy: z.enum(['check_in_date', 'check_out_date', 'total_amount', 'created_at']).optional(),
 	sortOrder: z.enum(['asc', 'desc']).optional(),
 });
 
-// Create booking
+// AuthenticatedRequest Controllers (more comprehensive with role-based access)
 export async function createBookingController(req: AuthenticatedRequest, res: Response) {
 	try {
 		if (!req.user) {
 			return res.status(401).json({ message: 'Unauthorized' });
 		}
 
-		const payload = createBookingSchema.parse(req.body);
+		const payload = createBookingAuthSchema.parse(req.body);
 		
 		const bookingData: CreateBookingData = {
 			room_id: payload.room_id,
@@ -103,7 +110,6 @@ export async function createBookingController(req: AuthenticatedRequest, res: Re
 	}
 }
 
-// Get booking by ID
 export async function getBookingByIdController(req: AuthenticatedRequest, res: Response) {
 	try {
 		if (!req.user) {
@@ -143,7 +149,6 @@ export async function getBookingByIdController(req: AuthenticatedRequest, res: R
 	}
 }
 
-// Get bookings with filtering and pagination
 export async function getBookingsController(req: AuthenticatedRequest, res: Response) {
 	try {
 		if (!req.user) {
@@ -152,7 +157,7 @@ export async function getBookingsController(req: AuthenticatedRequest, res: Resp
 
 		// Parse query parameters
 		const filters = bookingFiltersSchema.parse(req.query);
-		const pagination = paginationSchema.parse(req.query);
+		const pagination = paginationAuthSchema.parse(req.query);
 		
 		// Build strongly-typed filters
 		const processedFilters: BookingFilters = {};
@@ -194,7 +199,6 @@ export async function getBookingsController(req: AuthenticatedRequest, res: Resp
 	}
 }
 
-// Update booking
 export async function updateBookingController(req: AuthenticatedRequest, res: Response) {
 	try {
 		if (!req.user) {
@@ -209,7 +213,7 @@ export async function updateBookingController(req: AuthenticatedRequest, res: Re
 			});
 		}
 		
-		const payload = updateBookingSchema.parse(req.body);
+		const payload = updateBookingAuthSchema.parse(req.body);
 		
 		// Build strongly-typed update payload
 		const updateData: UpdateBookingData = {};
@@ -258,7 +262,6 @@ export async function updateBookingController(req: AuthenticatedRequest, res: Re
 	}
 }
 
-// Cancel booking
 export async function cancelBookingController(req: AuthenticatedRequest, res: Response) {
 	try {
 		if (!req.user) {
@@ -302,7 +305,6 @@ export async function cancelBookingController(req: AuthenticatedRequest, res: Re
 	}
 }
 
-// Delete booking (Admin/Staff only)
 export async function deleteBookingController(req: AuthenticatedRequest, res: Response) {
 	try {
 		if (!req.user) {
@@ -346,7 +348,6 @@ export async function deleteBookingController(req: AuthenticatedRequest, res: Re
 	}
 }
 
-// Get booking statistics
 export async function getBookingStatsController(req: AuthenticatedRequest, res: Response) {
 	try {
 		if (!req.user) {
@@ -365,4 +366,86 @@ export async function getBookingStatsController(req: AuthenticatedRequest, res: 
 			message: 'Failed to get booking statistics',
 		});
 	}
+}
+
+// Additional controllers using simpler service functions
+export async function checkInController(req: Request, res: Response) {
+	try {
+		const payload = checkInSchema.parse({ ...req.body, booking_id: req.params.id });
+		await checkIn(payload.booking_id, payload.notes, payload.actual_check_in_time);
+		const booking = await getBookingById(payload.booking_id);
+		if (!booking) throw NotFound('Booking not found');
+		return res.json(booking);
+	} catch (err: any) {
+		if (err.name === 'ZodError') {
+			return res.status(400).json({
+				message: 'Validation error',
+				errors: err.errors,
+			});
+		}
+		return res.status(500).json({ message: err.message || 'Failed to check in' });
+	}
+}
+
+export async function checkOutController(req: Request, res: Response) {
+	try {
+		const payload = checkOutSchema.parse({ ...req.body, booking_id: req.params.id });
+		await checkOut(payload.booking_id, { notes: payload.notes, at: payload.actual_check_out_time, additional_charges: payload.additional_charges });
+		const booking = await getBookingById(payload.booking_id);
+		if (!booking) throw NotFound('Booking not found');
+		return res.json(booking);
+	} catch (err: any) {
+		if (err.name === 'ZodError') {
+			return res.status(400).json({
+				message: 'Validation error',
+				errors: err.errors,
+			});
+		}
+		return res.status(500).json({ message: err.message || 'Failed to check out' });
+	}
+}
+
+export async function statsController(req: Request, res: Response) {
+	try {
+		const params = z.object({ date_from: z.coerce.date().optional(), date_to: z.coerce.date().optional() }).parse(req.query);
+		const s = await stats(params.date_from, params.date_to);
+		return res.json(s);
+	} catch (err: any) {
+		return res.status(500).json({ message: 'Failed to get stats' });
+	}
+}
+
+export async function arrivalsController(req: Request, res: Response) {
+	try {
+		const params = z.object({ date: z.coerce.date().optional() }).parse(req.query);
+		const data = await arrivals(params.date);
+		return res.json(data);
+	} catch (err: any) {
+		return res.status(500).json({ message: 'Failed to get arrivals' });
+	}
+}
+
+export async function departuresController(req: Request, res: Response) {
+	try {
+		const params = z.object({ date: z.coerce.date().optional() }).parse(req.query);
+		const data = await departures(params.date);
+		return res.json(data);
+	} catch (err: any) {
+		return res.status(500).json({ message: 'Failed to get departures' });
+	}
+}
+
+export async function sendConfirmationController(_req: Request, res: Response) {
+	// Stub: email service not enabled
+	return res.status(202).json({ queued: false });
+}
+
+export async function paymentController(_req: Request, res: Response) {
+	// Payment excluded by scope
+	return res.status(501).json({ message: 'Payment not implemented' });
+}
+
+export async function invoiceController(_req: Request, res: Response) {
+	// Out of scope; return 501
+	return res.status(501).json({ message: 'Invoice generation not implemented' });
 }

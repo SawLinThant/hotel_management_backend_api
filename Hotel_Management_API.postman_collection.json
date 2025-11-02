@@ -1,0 +1,1839 @@
+{
+	"info": {
+		"name": "Hotel Management API",
+		"description": "Complete API collection for Hotel Management System backend",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "hotel-management-api"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Guest Register",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"first_name\": \"John\",\n  \"last_name\": \"Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"password123\",\n  \"phone\": \"+1234567890\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/guest/register",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "guest", "register"]
+						},
+						"description": "Register a new guest user"
+					}
+				},
+				{
+					"name": "Guest Login",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"password123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/guest/login",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "guest", "login"]
+						},
+						"description": "Login as guest user"
+					}
+				},
+				{
+					"name": "Staff Register",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"first_name\": \"Jane\",\n  \"last_name\": \"Smith\",\n  \"email\": \"jane.smith@example.com\",\n  \"password\": \"password123\",\n  \"phone\": \"+1234567890\",\n  \"registration_key\": \"your_staff_registration_key\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/staff/register",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "staff", "register"]
+						},
+						"description": "Register a new staff user (requires registration key)"
+					}
+				},
+				{
+					"name": "Staff Login",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"jane.smith@example.com\",\n  \"password\": \"password123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/staff/login",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "staff", "login"]
+						},
+						"description": "Login as staff user"
+					}
+				},
+				{
+					"name": "Admin Login",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"password123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/admin/login",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "admin", "login"]
+						},
+						"description": "Login as admin user"
+					}
+				},
+				{
+					"name": "Generic Register",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"first_name\": \"Admin\",\n  \"last_name\": \"User\",\n  \"email\": \"admin@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"admin\",\n  \"phone\": \"+1234567890\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/register",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "register"]
+						},
+						"description": "Generic registration endpoint"
+					}
+				},
+				{
+					"name": "Generic Login",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"admin\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "login"]
+						},
+						"description": "Generic login endpoint"
+					}
+				},
+				{
+					"name": "Refresh Token",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"refresh_token\": \"{{refresh_token}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/refresh",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "refresh"]
+						},
+						"description": "Refresh access token using refresh token"
+					}
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"refresh_token\": \"{{refresh_token}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/logout",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "logout"]
+						},
+						"description": "Logout current session"
+					}
+				},
+				{
+					"name": "Logout All Sessions",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/auth/logout-all",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "logout-all"]
+						},
+						"description": "Logout from all sessions (requires authentication)"
+					}
+				}
+			],
+			"description": "Authentication endpoints"
+		},
+		{
+			"name": "Rooms",
+			"item": [
+				{
+					"name": "Get All Rooms",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/rooms?page=1&limit=10&type=single&status=available",
+							"host": ["{{base_url}}"],
+							"path": ["api", "rooms"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "type",
+									"value": "single",
+									"description": "single, double, suite, deluxe"
+								},
+								{
+									"key": "status",
+									"value": "available",
+									"description": "available, occupied, maintenance, cleaning"
+								},
+								{
+									"key": "min_price",
+									"value": "",
+									"disabled": true
+								},
+								{
+									"key": "max_price",
+									"value": "",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get list of rooms (public endpoint)"
+					}
+				},
+				{
+					"name": "Get Room by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/rooms/:id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "rooms", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "room_id_here"
+								}
+							]
+						},
+						"description": "Get room details by ID (public endpoint)"
+					}
+				},
+				{
+					"name": "Check Room Availability",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/rooms/availability?check_in_date=2024-01-15&check_out_date=2024-01-20&guests=2&room_type=single",
+							"host": ["{{base_url}}"],
+							"path": ["api", "rooms", "availability"],
+							"query": [
+								{
+									"key": "check_in_date",
+									"value": "2024-01-15",
+									"description": "ISO date string"
+								},
+								{
+									"key": "check_out_date",
+									"value": "2024-01-20",
+									"description": "ISO date string"
+								},
+								{
+									"key": "guests",
+									"value": "2"
+								},
+								{
+									"key": "room_type",
+									"value": "single",
+									"description": "single, double, suite, deluxe"
+								}
+							]
+						},
+						"description": "Check room availability for given dates (requires authentication)"
+					}
+				},
+				{
+					"name": "Create Room",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"room_number\": \"101\",\n  \"type\": \"single\",\n  \"capacity\": 2,\n  \"price_per_night\": 100.00,\n  \"description\": \"Cozy single room with city view\",\n  \"amenities\": [\"wifi\", \"tv\", \"ac\"],\n  \"images\": [\"https://example.com/room101.jpg\"],\n  \"floor\": 1,\n  \"size_sqm\": 25.5\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/rooms",
+							"host": ["{{base_url}}"],
+							"path": ["api", "rooms"]
+						},
+						"description": "Create a new room (Admin/Staff only)"
+					}
+				},
+				{
+					"name": "Update Room",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"available\",\n  \"price_per_night\": 120.00,\n  \"description\": \"Updated description\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/rooms/:id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "rooms", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "room_id_here"
+								}
+							]
+						},
+						"description": "Update room details (Admin/Staff only)"
+					}
+				},
+				{
+					"name": "Delete Room",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/rooms/:id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "rooms", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "room_id_here"
+								}
+							]
+						},
+						"description": "Delete a room (Admin/Staff only)"
+					}
+				},
+				{
+					"name": "Bulk Update Room Status",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"room_ids\": [\"room_id_1\", \"room_id_2\"],\n  \"status\": \"maintenance\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/rooms/bulk-status",
+							"host": ["{{base_url}}"],
+							"path": ["api", "rooms", "bulk-status"]
+						},
+						"description": "Bulk update room status (Admin/Staff only)"
+					}
+				},
+				{
+					"name": "Upload Room Images",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"images\": [\n    \"https://example.com/image1.jpg\",\n    \"https://example.com/image2.jpg\"\n  ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/rooms/:id/images",
+							"host": ["{{base_url}}"],
+							"path": ["api", "rooms", ":id", "images"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "room_id_here"
+								}
+							]
+						},
+						"description": "Upload room images (Admin/Staff only)"
+					}
+				},
+				{
+					"name": "Delete Room Image",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"image_url\": \"https://example.com/image1.jpg\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/rooms/:id/images",
+							"host": ["{{base_url}}"],
+							"path": ["api", "rooms", ":id", "images"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "room_id_here"
+								}
+							]
+						},
+						"description": "Delete a room image (Admin/Staff only)"
+					}
+				},
+				{
+					"name": "Get Room Statistics",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/rooms/stats/overview",
+							"host": ["{{base_url}}"],
+							"path": ["api", "rooms", "stats", "overview"]
+						},
+						"description": "Get room statistics overview (Admin only)"
+					}
+				}
+			],
+			"description": "Room management endpoints"
+		},
+		{
+			"name": "Bookings",
+			"item": [
+				{
+					"name": "Create Booking",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"room_id\": \"room_id_here\",\n  \"guest_id\": \"guest_id_here\",\n  \"check_in_date\": \"2024-01-15T14:00:00Z\",\n  \"check_out_date\": \"2024-01-20T11:00:00Z\",\n  \"guests\": 2,\n  \"special_requests\": \"Late check-in please\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/bookings",
+							"host": ["{{base_url}}"],
+							"path": ["api", "bookings"]
+						},
+						"description": "Create a new booking (Admin/Staff/Guest)"
+					}
+				},
+				{
+					"name": "Get All Bookings",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/bookings?page=1&limit=10&status=confirmed",
+							"host": ["{{base_url}}"],
+							"path": ["api", "bookings"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "status",
+									"value": "confirmed",
+									"description": "pending, confirmed, checked_in, checked_out, cancelled"
+								},
+								{
+									"key": "guest_id",
+									"value": "",
+									"disabled": true
+								},
+								{
+									"key": "room_id",
+									"value": "",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get list of bookings (Admin/Staff only)"
+					}
+				},
+				{
+					"name": "Get Booking by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/bookings/:id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "bookings", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "booking_id_here"
+								}
+							]
+						},
+						"description": "Get booking details by ID (Admin/Staff only)"
+					}
+				},
+				{
+					"name": "Update Booking",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"check_in_date\": \"2024-01-15T14:00:00Z\",\n  \"check_out_date\": \"2024-01-20T11:00:00Z\",\n  \"guests\": 3,\n  \"status\": \"confirmed\",\n  \"special_requests\": \"Updated special requests\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/bookings/:id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "bookings", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "booking_id_here"
+								}
+							]
+						},
+						"description": "Update booking details (Admin/Staff only)"
+					}
+				},
+				{
+					"name": "Delete Booking",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/bookings/:id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "bookings", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "booking_id_here"
+								}
+							]
+						},
+						"description": "Delete a booking (Admin/Staff only)"
+					}
+				},
+				{
+					"name": "Cancel Booking",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/bookings/:id/cancel",
+							"host": ["{{base_url}}"],
+							"path": ["api", "bookings", ":id", "cancel"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "booking_id_here"
+								}
+							]
+						},
+						"description": "Cancel a booking (Admin/Staff only)"
+					}
+				},
+				{
+					"name": "Check In",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"notes\": \"Guest arrived early\",\n  \"actual_check_in_time\": \"2024-01-15T13:00:00Z\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/bookings/:id/check-in",
+							"host": ["{{base_url}}"],
+							"path": ["api", "bookings", ":id", "check-in"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "booking_id_here"
+								}
+							]
+						},
+						"description": "Check in a booking (Admin/Staff only)"
+					}
+				},
+				{
+					"name": "Check Out",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"notes\": \"Guest checked out on time\",\n  \"actual_check_out_time\": \"2024-01-20T11:00:00Z\",\n  \"additional_charges\": [\n    {\n      \"description\": \"Room service\",\n      \"amount\": 25.00\n    }\n  ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/bookings/:id/check-out",
+							"host": ["{{base_url}}"],
+							"path": ["api", "bookings", ":id", "check-out"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "booking_id_here"
+								}
+							]
+						},
+						"description": "Check out a booking (Admin/Staff only)"
+					}
+				},
+				{
+					"name": "Get Booking Stats",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/bookings/stats?date_from=2024-01-01&date_to=2024-01-31",
+							"host": ["{{base_url}}"],
+							"path": ["api", "bookings", "stats"],
+							"query": [
+								{
+									"key": "date_from",
+									"value": "2024-01-01",
+									"disabled": true
+								},
+								{
+									"key": "date_to",
+									"value": "2024-01-31",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get booking statistics (Admin/Staff only)"
+					}
+				},
+				{
+					"name": "Get Booking Stats Overview",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/bookings/stats/overview",
+							"host": ["{{base_url}}"],
+							"path": ["api", "bookings", "stats", "overview"]
+						},
+						"description": "Get booking statistics overview (Admin/Staff only)"
+					}
+				},
+				{
+					"name": "Get Arrivals",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/bookings/arrivals?date=2024-01-15",
+							"host": ["{{base_url}}"],
+							"path": ["api", "bookings", "arrivals"],
+							"query": [
+								{
+									"key": "date",
+									"value": "2024-01-15",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get arrivals for a specific date (Admin/Staff only)"
+					}
+				},
+				{
+					"name": "Get Departures",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/bookings/departures?date=2024-01-20",
+							"host": ["{{base_url}}"],
+							"path": ["api", "bookings", "departures"],
+							"query": [
+								{
+									"key": "date",
+									"value": "2024-01-20",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get departures for a specific date (Admin/Staff only)"
+					}
+				},
+				{
+					"name": "Send Confirmation",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/bookings/:id/send-confirmation",
+							"host": ["{{base_url}}"],
+							"path": ["api", "bookings", ":id", "send-confirmation"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "booking_id_here"
+								}
+							]
+						},
+						"description": "Send booking confirmation email (Admin/Staff only - stub endpoint)"
+					}
+				},
+				{
+					"name": "Process Payment",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/bookings/:id/payment",
+							"host": ["{{base_url}}"],
+							"path": ["api", "bookings", ":id", "payment"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "booking_id_here"
+								}
+							]
+						},
+						"description": "Process payment for booking (Admin/Staff only - not implemented)"
+					}
+				},
+				{
+					"name": "Get Invoice",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/bookings/:id/invoice",
+							"host": ["{{base_url}}"],
+							"path": ["api", "bookings", ":id", "invoice"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "booking_id_here"
+								}
+							]
+						},
+						"description": "Get invoice for booking (Admin/Staff only - not implemented)"
+					}
+				}
+			],
+			"description": "Booking management endpoints"
+		},
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "Get All Users",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/users?page=1&limit=10&role=guest",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "role",
+									"value": "guest",
+									"description": "guest, staff, admin"
+								},
+								{
+									"key": "is_active",
+									"value": "true",
+									"disabled": true
+								},
+								{
+									"key": "search",
+									"value": "",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get list of users (Admin/Staff only)"
+					}
+				},
+				{
+					"name": "Get User by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/users/:id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "user_id_here"
+								}
+							]
+						},
+						"description": "Get user details by ID (Admin/Staff only)"
+					}
+				},
+				{
+					"name": "Create User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"first_name\": \"John\",\n  \"last_name\": \"Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"guest\",\n  \"phone\": \"+1234567890\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/users",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users"]
+						},
+						"description": "Create a new user (Admin/Staff only)"
+					}
+				},
+				{
+					"name": "Update User",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"first_name\": \"Jane\",\n  \"last_name\": \"Smith\",\n  \"role\": \"staff\",\n  \"is_active\": true,\n  \"phone\": \"+1234567890\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/users/:id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "user_id_here"
+								}
+							]
+						},
+						"description": "Update user details (Admin/Staff only)"
+					}
+				},
+				{
+					"name": "Delete User",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/users/:id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "user_id_here"
+								}
+							]
+						},
+						"description": "Delete a user (Admin/Staff only)"
+					}
+				},
+				{
+					"name": "Bulk Update Users",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"user_ids\": [\"user_id_1\", \"user_id_2\"],\n  \"is_active\": true,\n  \"role\": \"staff\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/users/bulk-update",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users", "bulk-update"]
+						},
+						"description": "Bulk update users (Admin/Staff only)"
+					}
+				},
+				{
+					"name": "Bulk Delete Users",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"user_ids\": [\"user_id_1\", \"user_id_2\"]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/users/bulk-delete",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users", "bulk-delete"]
+						},
+						"description": "Bulk delete users (Admin/Staff only)"
+					}
+				},
+				{
+					"name": "Get User Statistics",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/users/stats",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users", "stats"]
+						},
+						"description": "Get user statistics (Admin/Staff only)"
+					}
+				}
+			],
+			"description": "User management endpoints"
+		},
+		{
+			"name": "Profile",
+			"item": [
+				{
+					"name": "Get My Profile",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/me",
+							"host": ["{{base_url}}"],
+							"path": ["api", "me"]
+						},
+						"description": "Get current user's profile"
+					}
+				},
+				{
+					"name": "Update My Profile",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"first_name\": \"John\",\n  \"last_name\": \"Doe\",\n  \"phone\": \"+1234567890\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/me",
+							"host": ["{{base_url}}"],
+							"path": ["api", "me"]
+						},
+						"description": "Update current user's profile"
+					}
+				},
+				{
+					"name": "Change Password",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"current_password\": \"oldpassword\",\n  \"new_password\": \"newpassword123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/me/change-password",
+							"host": ["{{base_url}}"],
+							"path": ["api", "me", "change-password"]
+						},
+						"description": "Change current user's password"
+					}
+				},
+				{
+					"name": "Upload Avatar",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"avatar_url\": \"https://example.com/avatar.jpg\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/me/avatar",
+							"host": ["{{base_url}}"],
+							"path": ["api", "me", "avatar"]
+						},
+						"description": "Upload avatar for current user"
+					}
+				},
+				{
+					"name": "Request Password Reset",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"user@example.com\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/me/reset-password",
+							"host": ["{{base_url}}"],
+							"path": ["api", "me", "reset-password"]
+						},
+						"description": "Request password reset"
+					}
+				},
+				{
+					"name": "Confirm Password Reset",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"token\": \"reset_token_here\",\n  \"new_password\": \"newpassword123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/me/confirm-reset",
+							"host": ["{{base_url}}"],
+							"path": ["api", "me", "confirm-reset"]
+						},
+						"description": "Confirm password reset with token"
+					}
+				},
+				{
+					"name": "Send Email Verification",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/me/send-verification",
+							"host": ["{{base_url}}"],
+							"path": ["api", "me", "send-verification"]
+						},
+						"description": "Send email verification (requires authentication)"
+					}
+				},
+				{
+					"name": "Verify Email",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"token\": \"verification_token_here\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/me/verify-email",
+							"host": ["{{base_url}}"],
+							"path": ["api", "me", "verify-email"]
+						},
+						"description": "Verify email with token"
+					}
+				}
+			],
+			"description": "Profile and user account management endpoints"
+		},
+		{
+			"name": "Stay Records",
+			"item": [
+				{
+					"name": "Create Stay Record",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"booking_id\": \"booking_id_here\",\n  \"check_in_time\": \"2024-01-15T14:00:00Z\",\n  \"notes\": \"Guest arrived on time\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/stay-records",
+							"host": ["{{base_url}}"],
+							"path": ["api", "stay-records"]
+						},
+						"description": "Create a new stay record (requires authentication)"
+					}
+				},
+				{
+					"name": "Get All Stay Records",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/stay-records?page=1&limit=10",
+							"host": ["{{base_url}}"],
+							"path": ["api", "stay-records"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Get list of stay records (requires authentication)"
+					}
+				},
+				{
+					"name": "Get Stay Record by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/stay-records/:id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "stay-records", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "stay_record_id_here"
+								}
+							]
+						},
+						"description": "Get stay record details by ID (requires authentication)"
+					}
+				},
+				{
+					"name": "Update Stay Record",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"notes\": \"Updated notes\",\n  \"check_out_time\": \"2024-01-20T11:00:00Z\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/stay-records/:id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "stay-records", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "stay_record_id_here"
+								}
+							]
+						},
+						"description": "Update stay record details (requires authentication)"
+					}
+				},
+				{
+					"name": "Delete Stay Record",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/stay-records/:id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "stay-records", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "stay_record_id_here"
+								}
+							]
+						},
+						"description": "Delete a stay record (requires authentication)"
+					}
+				},
+				{
+					"name": "Check Out Guest",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"check_out_time\": \"2024-01-20T11:00:00Z\",\n  \"notes\": \"Guest checked out successfully\",\n  \"additional_charges\": [\n    {\n      \"description\": \"Mini bar\",\n      \"amount\": 15.50\n    }\n  ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/stay-records/:id/checkout",
+							"host": ["{{base_url}}"],
+							"path": ["api", "stay-records", ":id", "checkout"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "stay_record_id_here"
+								}
+							]
+						},
+						"description": "Check out guest from stay record (requires authentication)"
+					}
+				},
+				{
+					"name": "Get Stay Record Statistics",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/stay-records/stats/overview",
+							"host": ["{{base_url}}"],
+							"path": ["api", "stay-records", "stats", "overview"]
+						},
+						"description": "Get stay record statistics overview (requires authentication)"
+					}
+				}
+			],
+			"description": "Stay record management endpoints"
+		},
+		{
+			"name": "Password Reset",
+			"item": [
+				{
+					"name": "Request Password Reset",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"user@example.com\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/password-reset/request",
+							"host": ["{{base_url}}"],
+							"path": ["api", "password-reset", "request"]
+						},
+						"description": "Request password reset token"
+					}
+				},
+				{
+					"name": "Validate Reset Token",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"token\": \"reset_token_here\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/password-reset/validate",
+							"host": ["{{base_url}}"],
+							"path": ["api", "password-reset", "validate"]
+						},
+						"description": "Validate password reset token"
+					}
+				},
+				{
+					"name": "Reset Password",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"token\": \"reset_token_here\",\n  \"new_password\": \"newpassword123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/password-reset/reset",
+							"host": ["{{base_url}}"],
+							"path": ["api", "password-reset", "reset"]
+						},
+						"description": "Reset password with token"
+					}
+				}
+			],
+			"description": "Password reset endpoints"
+		},
+		{
+			"name": "Test",
+			"item": [
+				{
+					"name": "API Test",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/test",
+							"host": ["{{base_url}}"],
+							"path": ["api", "test"]
+						},
+						"description": "Test endpoint to verify API is working"
+					}
+				}
+			],
+			"description": "Test endpoints"
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:3000",
+			"type": "string"
+		},
+		{
+			"key": "access_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "refresh_token",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
+

@@ -4,11 +4,14 @@ import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
 import authRoutes from './routes/authRoutes.js';
-import passwordResetRoutes from './routes/passwordResetRoutes.js';
 import roomRoutes from './routes/roomRoutes.js';
 import bookingRoutes from './routes/bookingRoutes.js';
+import userRoutes from './routes/userRoutes.js';
+import profileRoutes from './routes/profileRoutes.js';
+import passwordResetRoutes from './routes/passwordResetRoutes.js';
 import stayRecordRoutes from './routes/stayRecordRoutes.js';
 import config from './config/index.js';
+import { errorHandler } from './middleware/errorHandler.js';
 
 const app = express();
 const prisma = new PrismaClient();
@@ -24,21 +27,21 @@ app.use(
 );
 app.use(compression());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true })); // Support form data
 
 app.use('/api', authRoutes);
-app.use('/api', passwordResetRoutes);
 app.use('/api', roomRoutes);
 app.use('/api', bookingRoutes);
+app.use('/api', userRoutes);
+app.use('/api', profileRoutes);
+app.use('/api', passwordResetRoutes);
 app.use('/api', stayRecordRoutes);
 app.get('/api/test', (req: Request, res: Response) => {
   res.status(200).json({ message: 'API is working!' });
 });
 
 // Global error handler middleware
-app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-  console.error(err.stack); // Log the error for debugging
-  res.status(500).json({ error: 'Internal server error', message: err.message });
-});
+app.use(errorHandler);
 
 // Disconnect Prisma on shutdown
 process.on('SIGINT', async () => {

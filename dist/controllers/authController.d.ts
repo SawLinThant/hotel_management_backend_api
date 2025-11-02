@@ -3,6 +3,7 @@ export declare function registerGuestController(req: Request, res: Response): Pr
 export declare function registerStaffController(req: Request, res: Response): Promise<Response<any, Record<string, any>>>;
 export declare function loginGuestController(req: Request, res: Response): Promise<Response<any, Record<string, any>>>;
 export declare function loginStaffController(req: Request, res: Response): Promise<Response<any, Record<string, any>>>;
+export declare function loginAdminController(req: Request, res: Response): Promise<Response<any, Record<string, any>>>;
 export declare function registerController(req: Request, res: Response): Promise<Response<any, Record<string, any>>>;
 export declare function loginController(req: Request, res: Response): Promise<Response<any, Record<string, any>>>;
 export declare function refreshTokenController(req: Request, res: Response): Promise<Response<any, Record<string, any>>>;

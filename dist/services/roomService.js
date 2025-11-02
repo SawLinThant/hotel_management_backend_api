@@ -1,45 +1,70 @@
 import { PrismaClient, RoomType, RoomStatus } from '../../generated/prisma/index.js';
 const prisma = new PrismaClient();
-// Create a new room (Admin only)
-export async function createRoom(data) {
-    // Check if room number already exists
-    const existingRoom = await prisma.room.findUnique({
-        where: { room_number: data.room_number },
-    });
-    if (existingRoom) {
-        throw new Error('Room number already exists');
+// List rooms - simpler version for basic listing
+export async function listRooms(params) {
+    const page = params.page ?? 1;
+    const limit = Math.min(params.limit ?? 10, 100);
+    const skip = (page - 1) * limit;
+    const where = {};
+    if (params.type)
+        where.type = params.type;
+    if (params.status)
+        where.status = params.status;
+    if (params.min_price || params.max_price) {
+        where.price_per_night = {};
+        if (params.min_price)
+            where.price_per_night.gte = params.min_price;
+        if (params.max_price)
+            where.price_per_night.lte = params.max_price;
     }
-    const room = await prisma.room.create({
-        data: {
-            room_number: data.room_number,
-            type: data.type,
-            capacity: data.capacity,
-            price_per_night: data.price_per_night,
-            description: data.description,
-            amenities: data.amenities,
-            images: data.images || [],
-            floor: data.floor,
-            size_sqm: data.size_sqm,
-        },
-        select: {
-            id: true,
-            room_number: true,
-            type: true,
-            status: true,
-            capacity: true,
-            price_per_night: true,
-            description: true,
-            amenities: true,
-            images: true,
-            floor: true,
-            size_sqm: true,
-            created_at: true,
-            updated_at: true,
-        },
-    });
-    return room;
+    if (params.min_capacity || params.max_capacity) {
+        where.capacity = {};
+        if (params.min_capacity)
+            where.capacity.gte = params.min_capacity;
+        if (params.max_capacity)
+            where.capacity.lte = params.max_capacity;
+    }
+    if (params.floor)
+        where.floor = params.floor;
+    if (params.amenities && params.amenities.length > 0) {
+        where.AND = (where.AND ?? []).concat(params.amenities.map((a) => ({ amenities: { array_contains: a } })));
+    }
+    const orderBy = params.sort_by
+        ? { [params.sort_by === 'price' ? 'price_per_night' : params.sort_by]: params.sort_order ?? 'asc' }
+        : { created_at: 'desc' };
+    const [rooms, total] = await prisma.$transaction([
+        prisma.room.findMany({
+            where,
+            skip,
+            take: limit,
+            orderBy,
+            select: {
+                id: true,
+                room_number: true,
+                type: true,
+                status: true,
+                capacity: true,
+                price_per_night: true,
+                description: true,
+                amenities: true,
+                images: true,
+                floor: true,
+                size_sqm: true,
+                created_at: true,
+                updated_at: true,
+            },
+        }),
+        prisma.room.count({ where }),
+    ]);
+    return {
+        rooms,
+        total,
+        page,
+        limit,
+        total_pages: Math.ceil(total / limit),
+    };
 }
-// Get room by ID
+// Get room by ID - comprehensive version with booking count
 export async function getRoomById(id) {
     const room = await prisma.room.findUnique({
         where: { id },
@@ -76,7 +101,7 @@ export async function getRoomById(id) {
     }
     return room;
 }
-// Get rooms with filtering and pagination
+// Get rooms with filtering and pagination - comprehensive version
 export async function getRooms(filters = {}, pagination = {}) {
     const { status, capacity, floor, price_per_night_min, price_per_night_max, type, search, } = filters;
     const { page = 1, limit = 10, sortBy = 'created_at', sortOrder = 'desc', } = pagination;
@@ -160,7 +185,46 @@ export async function getRooms(filters = {}, pagination = {}) {
         hasPrev,
     };
 }
-// Update room (Admin only)
+// Create room - comprehensive version with validation
+export async function createRoom(data) {
+    // Check if room number already exists
+    const existingRoom = await prisma.room.findUnique({
+        where: { room_number: data.room_number },
+    });
+    if (existingRoom) {
+        throw new Error('Room number already exists');
+    }
+    const room = await prisma.room.create({
+        data: {
+            room_number: data.room_number,
+            type: data.type,
+            capacity: data.capacity,
+            price_per_night: data.price_per_night,
+            description: data.description,
+            amenities: data.amenities,
+            images: data.images || [],
+            floor: data.floor,
+            size_sqm: data.size_sqm,
+        },
+        select: {
+            id: true,
+            room_number: true,
+            type: true,
+            status: true,
+            capacity: true,
+            price_per_night: true,
+            description: true,
+            amenities: true,
+            images: true,
+            floor: true,
+            size_sqm: true,
+            created_at: true,
+            updated_at: true,
+        },
+    });
+    return room;
+}
+// Update room - comprehensive version with validation
 export async function updateRoom(id, data) {
     // Check if room exists
     const existingRoom = await prisma.room.findUnique({
@@ -210,7 +274,7 @@ export async function updateRoom(id, data) {
     });
     return room;
 }
-// Delete room (Admin only)
+// Delete room - comprehensive version with validation
 export async function deleteRoom(id) {
     // Check if room exists
     const existingRoom = await prisma.room.findUnique({
@@ -237,6 +301,53 @@ export async function deleteRoom(id) {
         where: { id },
     });
     return { message: 'Room deleted successfully' };
+}
+// Bulk update status
+export async function bulkUpdateStatus(roomIds, status) {
+    await prisma.room.updateMany({ where: { id: { in: roomIds } }, data: { status } });
+}
+// Check availability
+export async function checkAvailability(params) {
+    const { check_in_date, check_out_date, guests, room_type } = params;
+    const where = { status: 'available' };
+    if (guests)
+        where.capacity = { gte: guests };
+    if (room_type)
+        where.type = room_type;
+    // Exclude rooms that have overlapping bookings within the period
+    const rooms = await prisma.room.findMany({
+        where: {
+            AND: [
+                where,
+                {
+                    bookings: {
+                        none: {
+                            OR: [
+                                {
+                                    AND: [
+                                        { check_in_date: { lt: check_out_date } },
+                                        { check_out_date: { gt: check_in_date } },
+                                    ],
+                                },
+                            ],
+                        },
+                    },
+                },
+            ],
+        },
+        select: {
+            id: true,
+            room_number: true,
+            price_per_night: true,
+        },
+    });
+    return rooms.map((r) => ({
+        room_id: r.id,
+        available: true,
+        price_per_night: Number(r.price_per_night),
+        total_price: Number(r.price_per_night) * Math.max(1, Math.ceil((+check_out_date - +check_in_date) / (24 * 3600 * 1000))),
+        nights: Math.max(1, Math.ceil((+check_out_date - +check_in_date) / (24 * 3600 * 1000))),
+    }));
 }
 // Get room statistics (for admin dashboard)
 export async function getRoomStats() {

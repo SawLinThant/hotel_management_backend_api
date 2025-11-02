@@ -1,7 +1,9 @@
 import { z } from 'zod';
-import { createBooking, getBookingById, getBookings, updateBooking, cancelBooking, deleteBooking, getBookingStats, } from '../services/bookingService.js';
-// Validation schemas
-const createBookingSchema = z.object({
+import { BadRequest, NotFound } from '../utils/errors.js';
+import { paginationSchema, bookingCreateSchema, bookingUpdateSchema, checkInSchema, checkOutSchema } from './validators.js';
+import { createBooking, getBookingById, getBookings, updateBooking, cancelBooking, deleteBooking, getBookingStats, checkIn, checkOut, stats, arrivals, departures, } from '../services/bookingService.js';
+// Validation schemas for AuthenticatedRequest controllers
+const createBookingAuthSchema = z.object({
     room_id: z.string().min(1, 'Room ID is required'),
     guest_id: z.string().min(1, 'Guest ID is required'),
     check_in_date: z.string().datetime('Invalid check-in date format'),
@@ -9,7 +11,7 @@ const createBookingSchema = z.object({
     guests: z.number().int().min(1, 'At least 1 guest required').max(10, 'Maximum 10 guests allowed'),
     special_requests: z.string().optional(),
 });
-const updateBookingSchema = z.object({
+const updateBookingAuthSchema = z.object({
     check_in_date: z.string().datetime('Invalid check-in date format').optional(),
     check_out_date: z.string().datetime('Invalid check-out date format').optional(),
     guests: z.number().int().min(1, 'At least 1 guest required').max(10, 'Maximum 10 guests allowed').optional(),
@@ -26,19 +28,19 @@ const bookingFiltersSchema = z.object({
     check_out_date_to: z.string().datetime('Invalid date format').optional(),
     guests: z.coerce.number().int().min(1).max(10).optional(),
 });
-const paginationSchema = z.object({
+const paginationAuthSchema = z.object({
     page: z.coerce.number().int().min(1, 'Page must be at least 1').optional(),
     limit: z.coerce.number().int().min(1, 'Limit must be at least 1').max(100, 'Limit cannot exceed 100').optional(),
     sortBy: z.enum(['check_in_date', 'check_out_date', 'total_amount', 'created_at']).optional(),
     sortOrder: z.enum(['asc', 'desc']).optional(),
 });
-// Create booking
+// AuthenticatedRequest Controllers (more comprehensive with role-based access)
 export async function createBookingController(req, res) {
     try {
         if (!req.user) {
             return res.status(401).json({ message: 'Unauthorized' });
         }
-        const payload = createBookingSchema.parse(req.body);
+        const payload = createBookingAuthSchema.parse(req.body);
         const bookingData = {
             room_id: payload.room_id,
             guest_id: payload.guest_id,
@@ -76,7 +78,6 @@ export async function createBookingController(req, res) {
         });
     }
 }
-// Get booking by ID
 export async function getBookingByIdController(req, res) {
     try {
         if (!req.user) {
@@ -110,7 +111,6 @@ export async function getBookingByIdController(req, res) {
         });
     }
 }
-// Get bookings with filtering and pagination
 export async function getBookingsController(req, res) {
     try {
         if (!req.user) {
@@ -118,7 +118,7 @@ export async function getBookingsController(req, res) {
         }
         // Parse query parameters
         const filters = bookingFiltersSchema.parse(req.query);
-        const pagination = paginationSchema.parse(req.query);
+        const pagination = paginationAuthSchema.parse(req.query);
         // Build strongly-typed filters
         const processedFilters = {};
         if (filters.status)
@@ -163,7 +163,6 @@ export async function getBookingsController(req, res) {
         });
     }
 }
-// Update booking
 export async function updateBookingController(req, res) {
     try {
         if (!req.user) {
@@ -175,7 +174,7 @@ export async function updateBookingController(req, res) {
                 message: 'Booking ID is required',
             });
         }
-        const payload = updateBookingSchema.parse(req.body);
+        const payload = updateBookingAuthSchema.parse(req.body);
         // Build strongly-typed update payload
         const updateData = {};
         if (payload.check_in_date)
@@ -222,7 +221,6 @@ export async function updateBookingController(req, res) {
         });
     }
 }
-// Cancel booking
 export async function cancelBookingController(req, res) {
     try {
         if (!req.user) {
@@ -259,7 +257,6 @@ export async function cancelBookingController(req, res) {
         });
     }
 }
-// Delete booking (Admin/Staff only)
 export async function deleteBookingController(req, res) {
     try {
         if (!req.user) {
@@ -296,7 +293,6 @@ export async function deleteBookingController(req, res) {
         });
     }
 }
-// Get booking statistics
 export async function getBookingStatsController(req, res) {
     try {
         if (!req.user) {
@@ -314,5 +310,86 @@ export async function getBookingStatsController(req, res) {
             message: 'Failed to get booking statistics',
         });
     }
+}
+// Additional controllers using simpler service functions
+export async function checkInController(req, res) {
+    try {
+        const payload = checkInSchema.parse({ ...req.body, booking_id: req.params.id });
+        await checkIn(payload.booking_id, payload.notes, payload.actual_check_in_time);
+        const booking = await getBookingById(payload.booking_id);
+        if (!booking)
+            throw NotFound('Booking not found');
+        return res.json(booking);
+    }
+    catch (err) {
+        if (err.name === 'ZodError') {
+            return res.status(400).json({
+                message: 'Validation error',
+                errors: err.errors,
+            });
+        }
+        return res.status(500).json({ message: err.message || 'Failed to check in' });
+    }
+}
+export async function checkOutController(req, res) {
+    try {
+        const payload = checkOutSchema.parse({ ...req.body, booking_id: req.params.id });
+        await checkOut(payload.booking_id, { notes: payload.notes, at: payload.actual_check_out_time, additional_charges: payload.additional_charges });
+        const booking = await getBookingById(payload.booking_id);
+        if (!booking)
+            throw NotFound('Booking not found');
+        return res.json(booking);
+    }
+    catch (err) {
+        if (err.name === 'ZodError') {
+            return res.status(400).json({
+                message: 'Validation error',
+                errors: err.errors,
+            });
+        }
+        return res.status(500).json({ message: err.message || 'Failed to check out' });
+    }
+}
+export async function statsController(req, res) {
+    try {
+        const params = z.object({ date_from: z.coerce.date().optional(), date_to: z.coerce.date().optional() }).parse(req.query);
+        const s = await stats(params.date_from, params.date_to);
+        return res.json(s);
+    }
+    catch (err) {
+        return res.status(500).json({ message: 'Failed to get stats' });
+    }
+}
+export async function arrivalsController(req, res) {
+    try {
+        const params = z.object({ date: z.coerce.date().optional() }).parse(req.query);
+        const data = await arrivals(params.date);
+        return res.json(data);
+    }
+    catch (err) {
+        return res.status(500).json({ message: 'Failed to get arrivals' });
+    }
+}
+export async function departuresController(req, res) {
+    try {
+        const params = z.object({ date: z.coerce.date().optional() }).parse(req.query);
+        const data = await departures(params.date);
+        return res.json(data);
+    }
+    catch (err) {
+        return res.status(500).json({ message: 'Failed to get departures' });
+    }
+}
+export async function sendConfirmationController(_req, res) {
+    // Stub: email service not enabled
+    return res.status(202).json({ queued: false });
+}
+export async function paymentController(_req, res) {
+    // Payment excluded by scope
+    return res.status(501).json({ message: 'Payment not implemented' });
+}
+export async function invoiceController(_req, res) {
+    // Out of scope; return 501
+    return res.status(501).json({ message: 'Invoice generation not implemented' });
 }
 //# sourceMappingURL=bookingController.js.map

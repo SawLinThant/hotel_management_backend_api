@@ -21,6 +21,11 @@ export const config = {
 	security: {
 		staffRegistrationKey: process.env.STAFF_REGISTRATION_KEY || '',
 	},
+	cloudinary: {
+		cloudName: process.env.CLOUDINARY_CLOUD_NAME || '',
+		apiKey: process.env.CLOUDINARY_API_KEY || '',
+		apiSecret: process.env.CLOUDINARY_API_SECRET || '',
+	},
 } as const;
 
 export default config;

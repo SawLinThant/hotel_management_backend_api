@@ -4,6 +4,7 @@ import { authenticate } from '../middleware/authMiddleware.js';
 import {
     loginGuestController,
     loginStaffController,
+    loginAdminController,
     registerGuestController,
     registerStaffController,
     loginController,
@@ -19,6 +20,7 @@ router.post('/auth/guest/register', authLimiter, registerGuestController);
 router.post('/auth/guest/login', authLimiter, loginGuestController);
 router.post('/auth/staff/register', authLimiter, registerStaffController);
 router.post('/auth/staff/login', authLimiter, loginStaffController);
+router.post('/auth/admin/login', authLimiter, loginAdminController);
 
 // Optional generic endpoints
 router.post('/auth/register', authLimiter, registerController);

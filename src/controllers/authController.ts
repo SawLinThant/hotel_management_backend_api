@@ -70,6 +70,16 @@ export async function loginStaffController(req: Request, res: Response) {
 	}
 }
 
+export async function loginAdminController(req: Request, res: Response) {
+	const payload = loginSchema.parse(req.body);
+	try {
+		const result = await loginWithRole({ ...payload, role: 'admin' });
+		return res.status(200).json(result);
+	} catch (err: any) {
+		return res.status(401).json({ message: err.message || 'Login failed' });
+	}
+}
+
 // Generic endpoints (backward compatibility): default to guest; allow role override
 const genericRegisterSchema = z.object({
     role: z.enum(['guest', 'staff']).optional().default('guest'),

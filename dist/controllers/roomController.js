@@ -1,33 +1,9 @@
 import { z } from 'zod';
-import { createRoom, getRoomById, getRooms, updateRoom, deleteRoom, getRoomStats, } from '../services/roomService.js';
-// Validation schemas
-const createRoomSchema = z.object({
-    room_number: z.string().min(1, 'Room number is required').max(50, 'Room number too long'),
-    type: z.enum(['single', 'double', 'suite', 'deluxe'], {
-        errorMap: () => ({ message: 'Invalid room type' }),
-    }),
-    capacity: z.number().int().min(1, 'Capacity must be at least 1').max(10, 'Capacity cannot exceed 10'),
-    price_per_night: z.number().positive('Price must be positive').max(999999.99, 'Price too high'),
-    description: z.string().optional(),
-    amenities: z.record(z.any()).refine((val) => Object.keys(val).length > 0, {
-        message: 'At least one amenity is required',
-    }),
-    images: z.array(z.string().url('Invalid image URL')).optional(),
-    floor: z.number().int().min(1, 'Floor must be at least 1').max(100, 'Floor cannot exceed 100').optional(),
-    size_sqm: z.number().positive('Size must be positive').max(999.99, 'Size too large').optional(),
-});
-const updateRoomSchema = z.object({
-    room_number: z.string().min(1, 'Room number is required').max(50, 'Room number too long').optional(),
-    type: z.enum(['single', 'double', 'suite', 'deluxe']).optional(),
-    status: z.enum(['available', 'occupied', 'maintenance', 'cleaning']).optional(),
-    capacity: z.number().int().min(1, 'Capacity must be at least 1').max(10, 'Capacity cannot exceed 10').optional(),
-    price_per_night: z.number().positive('Price must be positive').max(999999.99, 'Price too high').optional(),
-    description: z.string().optional(),
-    amenities: z.record(z.any()).optional(),
-    images: z.array(z.string().url('Invalid image URL')).optional(),
-    floor: z.number().int().min(1, 'Floor must be at least 1').max(100, 'Floor cannot exceed 100').optional(),
-    size_sqm: z.number().positive('Size must be positive').max(999.99, 'Size too large').optional(),
-});
+import { BadRequest, NotFound } from '../utils/errors.js';
+import { createRoom, getRoomById, getRooms, listRooms, updateRoom, deleteRoom, bulkUpdateStatus, checkAvailability, getRoomStats, } from '../services/roomService.js';
+import { paginationSchema, roomCreateSchema, roomUpdateSchema, roomAvailabilityQuerySchema } from './validators.js';
+import { uploadImages as uploadImagesToCloudinary } from '../utils/cloudinary.js';
+// Additional validation schemas
 const roomFiltersSchema = z.object({
     status: z.enum(['available', 'occupied', 'maintenance', 'cleaning']).optional(),
     capacity: z.coerce.number().int().min(1).max(10).optional(),
@@ -37,72 +13,18 @@ const roomFiltersSchema = z.object({
     type: z.enum(['single', 'double', 'suite', 'deluxe']).optional(),
     search: z.string().min(1).max(100).optional(),
 });
-const paginationSchema = z.object({
+const paginationAuthSchema = z.object({
     page: z.coerce.number().int().min(1, 'Page must be at least 1').optional(),
     limit: z.coerce.number().int().min(1, 'Limit must be at least 1').max(100, 'Limit cannot exceed 100').optional(),
     sortBy: z.enum(['price_per_night', 'capacity', 'floor', 'created_at']).optional(),
     sortOrder: z.enum(['asc', 'desc']).optional(),
 });
-// Create room (Admin only)
-export async function createRoomController(req, res) {
-    try {
-        const payload = createRoomSchema.parse(req.body);
-        const room = await createRoom(payload);
-        return res.status(201).json({
-            message: 'Room created successfully',
-            room,
-        });
-    }
-    catch (err) {
-        if (err.name === 'ZodError') {
-            return res.status(400).json({
-                message: 'Validation error',
-                errors: err.errors,
-            });
-        }
-        if (err.message === 'Room number already exists') {
-            return res.status(409).json({
-                message: err.message,
-            });
-        }
-        console.error('Create room error:', err);
-        return res.status(500).json({
-            message: 'Failed to create room',
-        });
-    }
-}
-// Get room by ID (Public)
-export async function getRoomByIdController(req, res) {
-    try {
-        const { id } = req.params;
-        if (!id) {
-            return res.status(400).json({
-                message: 'Room ID is required',
-            });
-        }
-        const room = await getRoomById(id);
-        return res.status(200).json({
-            room,
-        });
-    }
-    catch (err) {
-        if (err.message === 'Room not found') {
-            return res.status(404).json({
-                message: err.message,
-            });
-        }
-        console.error('Get room by ID error:', err);
-        return res.status(500).json({
-            message: 'Failed to get room',
-        });
-    }
-}
-// Get rooms with filtering and pagination (Public)
+// Get rooms controller - uses getRooms for better filtering support
 export async function getRoomsController(req, res) {
     try {
         // Parse query parameters
         const filters = roomFiltersSchema.parse(req.query);
-        const pagination = paginationSchema.parse(req.query);
+        const pagination = paginationAuthSchema.parse(req.query);
         // Set reasonable defaults for pagination
         const finalPagination = {
             page: pagination.page || 1,
@@ -129,16 +51,157 @@ export async function getRoomsController(req, res) {
         });
     }
 }
-// Update room (Admin only)
-export async function updateRoomController(req, res) {
+// Get room by ID controller
+export async function getRoomController(req, res) {
     try {
-        const { id } = req.params;
+        const id = req.params.id;
         if (!id) {
             return res.status(400).json({
                 message: 'Room ID is required',
             });
         }
-        const payload = updateRoomSchema.parse(req.body);
+        const room = await getRoomById(id);
+        if (!room) {
+            return res.status(404).json({
+                message: 'Room not found',
+            });
+        }
+        return res.status(200).json(room);
+    }
+    catch (err) {
+        if (err.message === 'Room not found') {
+            return res.status(404).json({
+                message: err.message,
+            });
+        }
+        console.error('Get room by ID error:', err);
+        return res.status(500).json({
+            message: 'Failed to get room',
+        });
+    }
+}
+// Also export as getRoomByIdController for compatibility
+export const getRoomByIdController = getRoomController;
+// Create room controller with file upload support
+export async function createRoomController(req, res) {
+    try {
+        // Parse JSON fields from req.body (after multer processes the form data)
+        const roomData = {
+            room_number: req.body.room_number,
+            type: req.body.type,
+            capacity: req.body.capacity ? Number(req.body.capacity) : undefined,
+            price_per_night: req.body.price_per_night ? Number(req.body.price_per_night) : undefined,
+            description: req.body.description,
+            amenities: req.body.amenities ? (Array.isArray(req.body.amenities) ? req.body.amenities : JSON.parse(req.body.amenities)) : [],
+            floor: req.body.floor ? Number(req.body.floor) : undefined,
+            size_sqm: req.body.size_sqm ? Number(req.body.size_sqm) : undefined,
+        };
+        const payload = roomCreateSchema.parse(roomData);
+        // Handle file uploads if any files are present
+        let imageUrls = [];
+        if (req.files && Array.isArray(req.files) && req.files.length > 0) {
+            try {
+                const files = req.files.map((file) => ({
+                    buffer: file.buffer,
+                    originalname: file.originalname,
+                }));
+                imageUrls = await uploadImagesToCloudinary(files);
+            }
+            catch (uploadError) {
+                console.error('Image upload error:', uploadError);
+                return res.status(500).json({
+                    message: `Failed to upload images: ${uploadError.message}`,
+                });
+            }
+        }
+        // Add image URLs to payload
+        const finalPayload = {
+            ...payload,
+            images: imageUrls.length > 0 ? imageUrls : undefined,
+        };
+        const room = await createRoom(finalPayload);
+        return res.status(201).json({
+            message: 'Room created successfully',
+            room,
+        });
+    }
+    catch (err) {
+        if (err.name === 'ZodError') {
+            return res.status(400).json({
+                message: 'Validation error',
+                errors: err.errors,
+            });
+        }
+        if (err.message === 'Room number already exists') {
+            return res.status(409).json({
+                message: err.message,
+            });
+        }
+        console.error('Create room error:', err);
+        return res.status(500).json({
+            message: 'Failed to create room',
+        });
+    }
+}
+// Update room controller with file upload support
+export async function updateRoomController(req, res) {
+    try {
+        const id = req.params.id;
+        if (!id) {
+            return res.status(400).json({
+                message: 'Room ID is required',
+            });
+        }
+        // Parse JSON fields from req.body (after multer processes the form data)
+        const roomData = {};
+        if (req.body.type !== undefined)
+            roomData.type = req.body.type;
+        if (req.body.status !== undefined)
+            roomData.status = req.body.status;
+        if (req.body.capacity !== undefined)
+            roomData.capacity = req.body.capacity ? Number(req.body.capacity) : undefined;
+        if (req.body.price_per_night !== undefined)
+            roomData.price_per_night = req.body.price_per_night ? Number(req.body.price_per_night) : undefined;
+        if (req.body.description !== undefined)
+            roomData.description = req.body.description;
+        if (req.body.amenities !== undefined) {
+            roomData.amenities = Array.isArray(req.body.amenities)
+                ? req.body.amenities
+                : req.body.amenities ? JSON.parse(req.body.amenities) : [];
+        }
+        if (req.body.floor !== undefined)
+            roomData.floor = req.body.floor ? Number(req.body.floor) : undefined;
+        if (req.body.size_sqm !== undefined)
+            roomData.size_sqm = req.body.size_sqm ? Number(req.body.size_sqm) : undefined;
+        // Handle file uploads if any files are present
+        let newImageUrls = [];
+        if (req.files && Array.isArray(req.files) && req.files.length > 0) {
+            try {
+                const files = req.files.map((file) => ({
+                    buffer: file.buffer,
+                    originalname: file.originalname,
+                }));
+                newImageUrls = await uploadImagesToCloudinary(files);
+            }
+            catch (uploadError) {
+                console.error('Image upload error:', uploadError);
+                return res.status(500).json({
+                    message: `Failed to upload images: ${uploadError.message}`,
+                });
+            }
+        }
+        // If new images were uploaded, get existing images and merge them
+        if (newImageUrls.length > 0) {
+            const existingRoom = await getRoomById(id);
+            if (!existingRoom) {
+                return res.status(404).json({
+                    message: 'Room not found',
+                });
+            }
+            const existingImages = existingRoom.images || [];
+            roomData.images = [...existingImages, ...newImageUrls];
+        }
+        const payload = roomUpdateSchema.parse(roomData);
         const room = await updateRoom(id, payload);
         return res.status(200).json({
             message: 'Room updated successfully',
@@ -168,10 +231,10 @@ export async function updateRoomController(req, res) {
         });
     }
 }
-// Delete room (Admin only)
+// Delete room controller
 export async function deleteRoomController(req, res) {
     try {
-        const { id } = req.params;
+        const id = req.params.id;
         if (!id) {
             return res.status(400).json({
                 message: 'Room ID is required',
@@ -197,7 +260,132 @@ export async function deleteRoomController(req, res) {
         });
     }
 }
-// Get room statistics (Admin only)
+// Check availability controller
+export async function checkAvailabilityController(req, res) {
+    try {
+        const params = roomAvailabilityQuerySchema.parse(req.query);
+        const data = await checkAvailability({
+            check_in_date: params.check_in_date,
+            check_out_date: params.check_out_date,
+            guests: params.guests,
+            room_type: params.room_type,
+        });
+        return res.json(data);
+    }
+    catch (err) {
+        if (err.name === 'ZodError') {
+            return res.status(400).json({
+                message: 'Validation error',
+                errors: err.errors,
+            });
+        }
+        return res.status(500).json({ message: err.message || 'Failed to check availability' });
+    }
+}
+// Bulk update status controller
+export async function bulkUpdateStatusController(req, res) {
+    try {
+        const body = z.object({ room_ids: z.array(z.string().min(1)), status: z.enum(['available', 'occupied', 'maintenance', 'cleaning']) }).parse(req.body);
+        await bulkUpdateStatus(body.room_ids, body.status);
+        return res.status(204).send();
+    }
+    catch (err) {
+        if (err.name === 'ZodError') {
+            return res.status(400).json({
+                message: 'Validation error',
+                errors: err.errors,
+            });
+        }
+        return res.status(500).json({ message: err.message || 'Failed to bulk update status' });
+    }
+}
+// Upload images controller with file upload support
+export async function uploadImagesController(req, res) {
+    try {
+        const id = req.params.id;
+        if (!id) {
+            return res.status(400).json({ message: 'Room ID is required' });
+        }
+        // Handle file uploads
+        let imageUrls = [];
+        if (req.files && Array.isArray(req.files) && req.files.length > 0) {
+            try {
+                const files = req.files.map((file) => ({
+                    buffer: file.buffer,
+                    originalname: file.originalname,
+                }));
+                imageUrls = await uploadImagesToCloudinary(files);
+            }
+            catch (uploadError) {
+                console.error('Image upload error:', uploadError);
+                return res.status(500).json({
+                    message: `Failed to upload images: ${uploadError.message}`,
+                });
+            }
+        }
+        else {
+            // Fallback: accept image URLs in body if no files
+            const body = z.object({ images: z.array(z.string().url()).optional() }).parse(req.body);
+            if (body.images) {
+                imageUrls = body.images;
+            }
+        }
+        if (imageUrls.length === 0) {
+            return res.status(400).json({ message: 'No images provided' });
+        }
+        // Get existing images and append new ones
+        const room = await getRoomById(id);
+        if (!room) {
+            return res.status(404).json({ message: 'Room not found' });
+        }
+        const existingImages = room.images || [];
+        const allImages = [...existingImages, ...imageUrls];
+        const updated = await updateRoom(id, { images: allImages });
+        return res.json({ image_urls: updated.images ?? [] });
+    }
+    catch (err) {
+        if (err.name === 'ZodError') {
+            return res.status(400).json({
+                message: 'Validation error',
+                errors: err.errors,
+            });
+        }
+        if (err.message === 'Room not found') {
+            return res.status(404).json({ message: err.message });
+        }
+        return res.status(500).json({ message: err.message || 'Failed to upload images' });
+    }
+}
+// Delete image controller
+export async function deleteImageController(req, res) {
+    try {
+        const id = req.params.id;
+        if (!id) {
+            return res.status(400).json({ message: 'Room ID is required' });
+        }
+        const body = z.object({ image_url: z.string().url() }).parse(req.body);
+        const room = await getRoomById(id);
+        if (!room)
+            throw NotFound('Room not found');
+        const images = room.images ?? [];
+        const next = images.filter((u) => u !== body.image_url);
+        await updateRoom(id, { images: next });
+        return res.status(204).send();
+    }
+    catch (err) {
+        if (err.name === 'ZodError') {
+            return res.status(400).json({
+                message: 'Validation error',
+                errors: err.errors,
+            });
+        }
+        if (err.message === 'Room not found') {
+            return res.status(404).json({ message: err.message });
+        }
+        return res.status(500).json({ message: err.message || 'Failed to delete image' });
+    }
+}
+// Get room statistics controller
 export async function getRoomStatsController(req, res) {
     try {
         const stats = await getRoomStats();
